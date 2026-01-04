@@ -90,6 +90,35 @@
         <tbody></tbody>
       </table>
     </div>
+    <div class="container py-5">
+      <h1 class="text-center mb-4">Zaključni list</h1>
+      <div class="d-flex justify-content-center mb-3">
+        <button class="btn btn-primary" onclick="prikaziFirmeZaZakljucni()">
+          Pokreni
+        </button>
+      </div>
+
+      <!-- Lista firmi za zaključni list -->
+      <div id="listaFirmiZakljucni" class="row g-2 mb-4 d-none"></div>
+
+      <!-- Tabela zaključnog lista -->
+      <div id="izabranaFirmaZakljucni" class="alert alert-info d-none"></div>
+      <table
+        id="zakljucniList"
+        class="table table-striped table-bordered table-sm d-none"
+      >
+        <thead class="table-dark">
+          <tr>
+            <th>Konto</th>
+            <th>Naziv konta</th>
+            <th>Promet Duguje</th>
+            <th>Promet Potraživanje</th>
+            <th>Saldo</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom JavaScript -->

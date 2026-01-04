@@ -201,3 +201,41 @@ app.get("/saldo_dobavljaca", async (req, res) => {
     res.json({ success: false, error: error.message });
   }
 });
+
+// Funkcija za zaključni list
+async function zakljucni_list(apUser) {
+  try {
+    const pool = await sql.connect(dbConfig);
+    const result = await pool.request()
+      .input("apUser", sql.NVarChar, apUser)
+      .query(`
+      SELECT 
+        k.Oznaka AS Konto,
+        k.Naziv AS NazivKonta,
+        SUM(ns.Duguje) AS PrometDuguje,
+        SUM(ns.Potrazuje) AS PrometPotrazuje,
+        SUM(ns.Duguje) - SUM(ns.Potrazuje) AS Saldo
+      FROM [CRM_SumSumarum].[dbo].[NalogStavke] ns
+      INNER JOIN [CRM_SumSumarum].[dbo].[Nalog] n ON ns.IdNalog = n.Id
+      INNER JOIN [CRM_SumSumarum].[dbo].[Apps] a ON n.IdApp = a.Id
+      LEFT JOIN [CRM_SumSumarum].[dbo].[Konto] k ON ns.IdKonto = k.Id
+      WHERE a.ApUser = @apUser AND a.Godina = 2025
+      GROUP BY k.Oznaka, k.Naziv, ns.OznakaKonta
+      HAVING SUM(ns.Duguje) <> 0 OR SUM(ns.Potrazuje) <> 0
+      ORDER BY k.Oznaka;
+    `);
+    return result.recordset;
+  } catch (err) {
+    throw err;
+  }
+}
+
+app.get("/zakljucni_list", async (req, res) => {
+  try {
+    const firma = req.query.firma;
+    const data = await zakljucni_list(firma);
+    res.json({ success: true, data, firma });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
