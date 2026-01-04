@@ -1,0 +1,22 @@
+/* Stilizovanje tabele */
+table {
+  margin-top: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+thead {
+  color: #ffffff;
+  background-color: #343a40;
+}
+
+/* Naizmenične boje za redove u tabeli */
+tbody tr:nth-child(odd) {
+  background-color: #f2f2f2; /* Bijela boja za neparne redove */
+}
+
+tbody tr:nth-child(even) {
+  background-color: #e0f7fa; /* Blijedo plava boja za parne redove */
+}
