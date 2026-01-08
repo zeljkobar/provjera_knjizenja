@@ -1,6 +1,8 @@
 const express = require("express");
 const sql = require("mssql");
 const cors = require("cors");
+const fs = require("fs");
+const path = require("path");
 require("dotenv").config();
 
 const app = express();
@@ -164,6 +166,7 @@ async function saldo_dobavljaca(apUser) {
       SELECT 
         Apps.ApUser AS Firma,
         Apps.Godina,
+        Apps.VATnumber AS PIB,
         k.Naziv AS Dobavljac,
         k.Grad,
         agg.SumaDuguje,
@@ -206,8 +209,7 @@ app.get("/saldo_dobavljaca", async (req, res) => {
 async function zakljucni_list(apUser) {
   try {
     const pool = await sql.connect(dbConfig);
-    const result = await pool.request()
-      .input("apUser", sql.NVarChar, apUser)
+    const result = await pool.request().input("apUser", sql.NVarChar, apUser)
       .query(`
       SELECT 
         k.Oznaka AS Konto,
@@ -235,6 +237,165 @@ app.get("/zakljucni_list", async (req, res) => {
     const firma = req.query.firma;
     const data = await zakljucni_list(firma);
     res.json({ success: true, data, firma });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// Konfiguracija vrsta naloga za izvode banaka
+const bankeVrste = [
+  { code: "lovb", naziv: "Lovćen banka", oznaka: "LOVB" },
+  { code: "ckb", naziv: "CKB", oznaka: "CKB" },
+  { code: "hipo", naziv: "Hipotekarna banka", oznaka: "HIPO" },
+  { code: "erste", naziv: "Erste banka", id: 47 },
+  { code: "nlb", naziv: "NLB banka", oznaka: "NLB" },
+  { code: "prvb", naziv: "Prva banka", oznaka: "PRVB" },
+  { code: "addiko", naziv: "Addiko banka", id: 42 },
+  { code: "ab", naziv: "Adriatic banka", oznaka: "AB" },
+  { code: "zirb", naziv: "Zirrat banka", oznaka: "ZIRB" },
+  { code: "unv", naziv: "Universal Capital banka", oznaka: "UNV" },
+];
+
+// Endpoint za pregled nedostajućih izvoda po banci
+app.get("/banke-izvodi", async (req, res) => {
+  const bankParam = (req.query.bank || "lovb").toString().toLowerCase();
+  const year = parseInt(req.query.year, 10) || new Date().getFullYear();
+
+  const banka = bankeVrste.find((b) => b.code === bankParam);
+  if (!banka) {
+    return res.json({ success: false, error: "Nepoznata banka" });
+  }
+
+  try {
+    const pool = await sql.connect(dbConfig);
+
+    // Učitaj sve vrste naloga pa upari po oznaci
+    const vrsteNaloga = await pool.request().query(
+      "SELECT Id, UPPER(Oznaka) AS Oznaka FROM [CRM_SumSumarum].[dbo].[VrstaNaloga]"
+    );
+
+    const vrstaId = banka.id
+      ? banka.id
+      : vrsteNaloga.recordset.find(
+          (v) => v.Oznaka && v.Oznaka.toUpperCase() === banka.oznaka
+        )?.Id;
+
+    if (!vrstaId) {
+      return res.json({
+        success: false,
+        error: `Nije pronađena vrsta naloga za banku ${banka.naziv}`,
+      });
+    }
+
+    const startDate = new Date(`${year}-01-01T00:00:00Z`);
+    const endDate = new Date(`${year + 1}-01-01T00:00:00Z`);
+
+    const query = `
+      SELECT n.IdApp, a.ApUser, n.Rbr, n.Datum
+      FROM [CRM_SumSumarum].[dbo].[Nalog] n
+      LEFT JOIN [CRM_SumSumarum].[dbo].[Apps] a ON n.IdApp = a.Id
+      WHERE n.IdVrstaNaloga = @vrstaId
+        AND n.Rbr IS NOT NULL
+        AND n.Datum >= @startDate
+        AND n.Datum < @endDate
+      ORDER BY n.IdApp, n.Rbr;
+    `;
+
+    const result = await pool
+      .request()
+      .input("vrstaId", sql.Int, vrstaId)
+      .input("startDate", sql.Date, startDate)
+      .input("endDate", sql.Date, endDate)
+      .query(query);
+
+    const groups = new Map();
+
+    for (const row of result.recordset) {
+      const key = row.IdApp;
+      if (!groups.has(key)) {
+        groups.set(key, { apUser: row.ApUser || "(bez ApUser)", numbers: [], dates: [] });
+      }
+      const num = Number(row.Rbr);
+      if (!Number.isNaN(num)) {
+        groups.get(key).numbers.push(num);
+        groups.get(key).dates.push({ rbr: num, datum: row.Datum });
+      }
+    }
+
+    const report = [];
+    let globalMax = 0;
+
+    for (const [idApp, info] of groups.entries()) {
+      const nums = Array.from(new Set(info.numbers)).sort((a, b) => a - b);
+      const numSet = new Set(nums);
+      const maxRbr = nums.length ? nums[nums.length - 1] : 0;
+      if (maxRbr > globalMax) globalMax = maxRbr;
+
+      const missing = [];
+      for (let i = 1; i <= maxRbr; i++) {
+        if (!numSet.has(i)) missing.push(i);
+      }
+
+      // Pronađi datum za zadnji izvod
+      const maxDate = info.dates.find(d => d.rbr === maxRbr)?.datum || null;
+
+      report.push({ idApp, apUser: info.apUser, maxRbr, maxDate, missing });
+    }
+
+    const withGaps = report.filter((r) => r.missing.length > 0).length;
+    const withoutGaps = report.length - withGaps;
+
+    res.json({
+      success: true,
+      banka: banka.code,
+      bankaNaziv: banka.naziv,
+      year,
+      globalMax,
+      withGaps,
+      withoutGaps,
+      data: report,
+    });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// Endpoint za učitavanje kontakata iz JSON
+app.get("/kontakti", async (req, res) => {
+  try {
+    const jsonPath = path.join(__dirname, "kontakti.json");
+    const jsonData = fs.readFileSync(jsonPath, "utf-8");
+    const kontakti = JSON.parse(jsonData);
+
+    res.json({ success: true, data: kontakti });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
+// Endpoint za dobijanje mapiranja dobavljača
+app.get("/vendor-mapping", async (req, res) => {
+  try {
+    const mappingPath = path.join(__dirname, "vendor-mapping.json");
+    const mappingData = fs.readFileSync(mappingPath, "utf-8");
+    const mapping = JSON.parse(mappingData);
+
+    res.json({ success: true, data: mapping });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// Endpoint za dobijanje svih jedinstvenih dobavljača
+app.get("/svi-dobavljaci", async (req, res) => {
+  try {
+    const pool = await sql.connect(dbConfig);
+    const result = await pool.request().query(`
+      SELECT DISTINCT Dobavljac
+      FROM [CRM_SumSumarum].[dbo].[SaldoDobavljaca]
+      WHERE Dobavljac IS NOT NULL AND Dobavljac != ''
+      ORDER BY Dobavljac
+    `);
+    res.json({ success: true, data: result.recordset.map((r) => r.Dobavljac) });
   } catch (error) {
     res.json({ success: false, error: error.message });
   }

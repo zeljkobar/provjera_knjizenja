@@ -137,6 +137,29 @@ async function ucitajDobavljace(firma) {
     const izabranaFirma = document.getElementById("izabranaFirma");
     const table = document.getElementById("saldoDobavljaca");
 
+    // Učitaj kontakte i mapiranje prvi put
+    if (!window.kontakti) {
+      const kontaktiResponse = await fetch("http://localhost:3000/kontakti");
+      const kontaktiResult = await kontaktiResponse.json();
+      if (kontaktiResult.success) {
+        window.kontakti = kontaktiResult.data;
+      } else {
+        window.kontakti = [];
+      }
+    }
+
+    if (!window.vendorMapping) {
+      const mappingResponse = await fetch(
+        "http://localhost:3000/vendor-mapping"
+      );
+      const mappingResult = await mappingResponse.json();
+      if (mappingResult.success) {
+        window.vendorMapping = mappingResult.data;
+      } else {
+        window.vendorMapping = {};
+      }
+    }
+
     // Prikaži koja firma je izabrana
     izabranaFirma.innerHTML = `<strong>Prikazujem dobavljače za firmu:</strong> ${firma}`;
     izabranaFirma.classList.remove("d-none");
@@ -152,11 +175,12 @@ async function ucitajDobavljace(firma) {
           <th>Duguje</th>
           <th>Potraživanje</th>
           <th>Saldo</th>
+          <th>Akcija</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td colspan="7" class="text-center">
+          <td colspan="8" class="text-center">
             <div class="spinner-border spinner-border-sm" role="status">
               <span class="visually-hidden">Loading...</span>
             </div>
@@ -185,13 +209,59 @@ async function ucitajDobavljace(firma) {
 
     if (result.data.length === 0) {
       table.querySelector("tbody").innerHTML =
-        '<tr><td colspan="7" class="text-center">Nema podataka za ovu firmu</td></tr>';
+        '<tr><td colspan="8" class="text-center">Nema podataka za ovu firmu</td></tr>';
       return;
     }
 
     result.data.forEach((row) => {
       const saldoClass =
         row.Saldo > 0 ? "text-danger" : row.Saldo < 0 ? "text-success" : "";
+
+      // Pretraži email iz mapiranja prvo
+      let emailAdresa = "";
+      const dobavljacNaziv = (row.Dobavljac || "").toLowerCase().trim();
+
+      // Prvo proveri mapiranje dobavljača
+      if (window.vendorMapping) {
+        const mappingKey = Object.keys(window.vendorMapping).find(
+          (key) => key.toLowerCase() === dobavljacNaziv
+        );
+        if (mappingKey && window.vendorMapping[mappingKey]) {
+          emailAdresa = window.vendorMapping[mappingKey];
+        }
+      }
+
+      // Ako nema u mapiranju, pretraži u kontaktima - samo tačna poklapanja
+      if (!emailAdresa && window.kontakti && dobavljacNaziv) {
+        const kontakt = window.kontakti.find((k) => {
+          const searchText = (k.searchText || "").toLowerCase().trim();
+          // Samo ako se dobavljač tačno pojavljuje u searchText
+          return (
+            searchText.includes(dobavljacNaziv) && dobavljacNaziv.length > 2
+          );
+        });
+
+        if (kontakt) {
+          emailAdresa = kontakt.email;
+        }
+      }
+
+      // Pripremi mailto link
+      const subject = encodeURIComponent(
+        `Zahtev za analitičku karticu - ${row.Firma}`
+      );
+      const body = encodeURIComponent(
+        `Poštovani,\n\n` +
+          `Molim Vas da mi pošaljete analitičku karticu za 2025. godinu za firmu ${row.Firma}.` +
+          (row.PIB ? `\nPIB: ${row.PIB}` : "") +
+          `\n\nHvala unaprijed.\n\n` +
+          `Srdačan pozdrav\n` +
+          `Željko Đuranović\n` +
+          `Knjigovodstvena Agencija "Summa Summarum"\n` +
+          `Tel: 067/440-040`
+      );
+      const mailtoLink = `mailto:${emailAdresa}?subject=${subject}&body=${body}`;
+
       const newRow = `<tr>
         <td>${row.Firma}</td>
         <td>${row.Godina}</td>
@@ -200,6 +270,13 @@ async function ucitajDobavljace(firma) {
         <td>${row.SumaDuguje.toFixed(2)}</td>
         <td>${row.SumaPotrazuje.toFixed(2)}</td>
         <td class="${saldoClass}"><strong>${row.Saldo.toFixed(2)}</strong></td>
+        <td>
+          <a href="${mailtoLink}" class="btn btn-sm btn-outline-primary" title="${
+        emailAdresa || "Email nije pronađen"
+      }">
+            Traži karticu ${emailAdresa ? "✓" : ""}
+          </a>
+        </td>
       </tr>`;
       table.querySelector("tbody").innerHTML += newRow;
     });

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Izvodi banaka</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-light">
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h1 class="h3 mb-0">Izvodi banaka</h1>
+      <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="index.html">← Nazad</a>
+        <a class="btn btn-outline-primary" href="banke.html">Osvježi</a>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-4">
+            <label class="form-label">Banka</label>
+            <select class="form-select" id="bankSelect">
+              <option value="lovb">Lovćen banka</option>
+              <option value="ckb">CKB</option>
+              <option value="hipo">Hipotekarna banka</option>
+              <option value="erste">Erste banka</option>
+              <option value="nlb">NLB banka</option>
+              <option value="prvb">Prva banka</option>
+              <option value="addiko">Addiko banka</option>
+              <option value="ab">Adriatic banka</option>
+              <option value="zirb">Zirrat banka</option>
+              <option value="unv">Universal Capital banka</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Godina</label>
+            <input class="form-control" type="number" id="yearInput" min="2000" max="2100" />
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <button class="btn btn-primary w-100" id="runBtn">Prikaži izvještaj</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="statusBox" class="alert d-none" role="alert"></div>
+
+    <div class="card mb-4 d-none" id="summaryCard">
+      <div class="card-body row text-center">
+        <div class="col-sm-4 mb-2">
+          <div class="fw-semibold">Banka</div>
+          <div id="summaryBank">-</div>
+        </div>
+        <div class="col-sm-4 mb-2">
+          <div class="fw-semibold">Zadnji knjiženi (max)</div>
+          <div id="summaryMax">-</div>
+        </div>
+        <div class="col-sm-4 mb-2">
+          <div class="fw-semibold">Firme bez rupa / sa rupama</div>
+          <div><span id="summaryBez">0</span> / <span id="summarySa">0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card d-none" id="tableCard">
+      <div class="card-body">
+        <h5 class="card-title">Firme sa rupama</h5>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped mb-0" id="gapsTable">
+            <thead class="table-dark">
+              <tr>
+                <th>Firma</th>
+                <th>Nedostaje</th>
+                <th>Zadnji knjiženi</th>
+                <th>Datum</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="banke.js"></script>
+</body>
+</html>
