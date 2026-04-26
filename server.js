@@ -35,7 +35,7 @@ async function sve_plate() {
             LEFT JOIN 
                 [CRM_SumSumarum].[dbo].[Nalog] AS Nalog
             ON 
-                Apps.Id = Nalog.IdApp AND Nalog.IdVrstaNaloga = 200 AND Nalog.Datum >= '2025-01-01'
+                Apps.Id = Nalog.IdApp AND Nalog.IdVrstaNaloga = 200 AND Nalog.Datum >= '2026-01-01'
             GROUP BY 
                 Apps.ApUser
            -- HAVING count(Nalog.id) = 0
@@ -61,7 +61,7 @@ async function pdv_prijave() {
             LEFT JOIN 
                 [CRM_SumSumarum].[dbo].[Nalog] AS Nalog
             ON 
-                Apps.Id = Nalog.IdApp AND Nalog.IdVrstaNaloga = 70 AND Nalog.Datum >= '2025-01-01'
+                Apps.Id = Nalog.IdApp AND Nalog.IdVrstaNaloga = 70 AND Nalog.Datum >= '2026-01-01'
             GROUP BY 
                 Apps.ApUser
             ORDER BY 
@@ -81,11 +81,11 @@ async function pocetno_stanje() {
             Apps.ApUser, 
             COUNT(Nalog.id) AS BrojNaloga
         FROM (
-            SELECT * from [CRM_SumSumarum].[dbo].[Apps] WHERE apps.godina = 2024) AS Apps
+            SELECT * from [CRM_SumSumarum].[dbo].[Apps] WHERE apps.godina = 2026) AS Apps
         LEFT JOIN 
             [CRM_SumSumarum].[dbo].[Nalog] AS Nalog
                 ON 
-            Apps.Id = Nalog.IdApp AND Nalog.IdVrstaNaloga = 400 AND Nalog.Datum >= '2024-01-01'
+            Apps.Id = Nalog.IdApp AND Nalog.IdVrstaNaloga = 400 AND Nalog.Datum >= '2026-01-01'
         GROUP BY 
                 Apps.ApUser
         HAVING count(Nalog.id) = 0
@@ -139,7 +139,7 @@ async function lista_firmi() {
     const result = await pool.request().query(`
       SELECT DISTINCT ApUser, Id
       FROM [CRM_SumSumarum].[dbo].[Apps]
-      WHERE Godina = 2025 AND IsActive = 1
+      WHERE Godina = 2026 AND IsActive = 1
       ORDER BY ApUser
     `);
     return result.recordset;
@@ -186,7 +186,7 @@ async function saldo_dobavljaca(apUser) {
         GROUP BY ns.IdKomitent, n.IdApp
       ) agg ON k.Id = agg.IdKomitent
       INNER JOIN [CRM_SumSumarum].[dbo].[Apps] Apps ON agg.IdApp = Apps.Id
-      WHERE Apps.Godina = 2025 AND Apps.ApUser = @apUser
+      WHERE Apps.Godina = 2026 AND Apps.ApUser = @apUser
       ORDER BY agg.Saldo DESC;
     `);
     return result.recordset;
@@ -221,7 +221,7 @@ async function zakljucni_list(apUser) {
       INNER JOIN [CRM_SumSumarum].[dbo].[Nalog] n ON ns.IdNalog = n.Id
       INNER JOIN [CRM_SumSumarum].[dbo].[Apps] a ON n.IdApp = a.Id
       LEFT JOIN [CRM_SumSumarum].[dbo].[Konto] k ON ns.IdKonto = k.Id
-      WHERE a.ApUser = @apUser AND a.Godina = 2025
+      WHERE a.ApUser = @apUser AND a.Godina = 2026
       GROUP BY k.Oznaka, k.Naziv, ns.OznakaKonta
       HAVING SUM(ns.Duguje) <> 0 OR SUM(ns.Potrazuje) <> 0
       ORDER BY k.Oznaka;
@@ -270,14 +270,16 @@ app.get("/banke-izvodi", async (req, res) => {
     const pool = await sql.connect(dbConfig);
 
     // Učitaj sve vrste naloga pa upari po oznaci
-    const vrsteNaloga = await pool.request().query(
-      "SELECT Id, UPPER(Oznaka) AS Oznaka FROM [CRM_SumSumarum].[dbo].[VrstaNaloga]"
-    );
+    const vrsteNaloga = await pool
+      .request()
+      .query(
+        "SELECT Id, UPPER(Oznaka) AS Oznaka FROM [CRM_SumSumarum].[dbo].[VrstaNaloga]",
+      );
 
     const vrstaId = banka.id
       ? banka.id
       : vrsteNaloga.recordset.find(
-          (v) => v.Oznaka && v.Oznaka.toUpperCase() === banka.oznaka
+          (v) => v.Oznaka && v.Oznaka.toUpperCase() === banka.oznaka,
         )?.Id;
 
     if (!vrstaId) {
@@ -313,7 +315,11 @@ app.get("/banke-izvodi", async (req, res) => {
     for (const row of result.recordset) {
       const key = row.IdApp;
       if (!groups.has(key)) {
-        groups.set(key, { apUser: row.ApUser || "(bez ApUser)", numbers: [], dates: [] });
+        groups.set(key, {
+          apUser: row.ApUser || "(bez ApUser)",
+          numbers: [],
+          dates: [],
+        });
       }
       const num = Number(row.Rbr);
       if (!Number.isNaN(num)) {
@@ -337,7 +343,7 @@ app.get("/banke-izvodi", async (req, res) => {
       }
 
       // Pronađi datum za zadnji izvod
-      const maxDate = info.dates.find(d => d.rbr === maxRbr)?.datum || null;
+      const maxDate = info.dates.find((d) => d.rbr === maxRbr)?.datum || null;
 
       report.push({ idApp, apUser: info.apUser, maxRbr, maxDate, missing });
     }
@@ -396,6 +402,42 @@ app.get("/svi-dobavljaci", async (req, res) => {
       ORDER BY Dobavljac
     `);
     res.json({ success: true, data: result.recordset.map((r) => r.Dobavljac) });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// Funkcija za firme sa saldom na kontu 2449
+async function firme_sa_2449() {
+  try {
+    const pool = await sql.connect(dbConfig);
+    const result = await pool.request().query(`
+      SELECT 
+        a.ApUser AS Firma,
+        k.Oznaka AS Konto,
+        k.Naziv AS NazivKonta,
+        SUM(ns.Duguje) AS PrometDuguje,
+        SUM(ns.Potrazuje) AS PrometPotrazuje,
+        SUM(ns.Duguje) - SUM(ns.Potrazuje) AS Saldo
+      FROM [CRM_SumSumarum].[dbo].[NalogStavke] ns
+      INNER JOIN [CRM_SumSumarum].[dbo].[Nalog] n ON ns.IdNalog = n.Id
+      INNER JOIN [CRM_SumSumarum].[dbo].[Apps] a ON n.IdApp = a.Id
+      LEFT JOIN [CRM_SumSumarum].[dbo].[Konto] k ON ns.IdKonto = k.Id
+      WHERE a.Godina = 2026 AND (k.Oznaka = '2449' OR ns.OznakaKonta = '2449')
+      GROUP BY a.ApUser, k.Oznaka, k.Naziv, ns.OznakaKonta
+      HAVING SUM(ns.Duguje) - SUM(ns.Potrazuje) <> 0
+      ORDER BY a.ApUser;
+    `);
+    return result.recordset;
+  } catch (err) {
+    throw err;
+  }
+}
+
+app.get("/firme_2449", async (req, res) => {
+  try {
+    const data = await firme_sa_2449();
+    res.json({ success: true, data });
   } catch (error) {
     res.json({ success: false, error: error.message });
   }

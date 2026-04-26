@@ -120,7 +120,7 @@ async function prikaziFirme() {
       dugme.innerHTML = `
         <button class="btn btn-outline-primary w-100" onclick="ucitajDobavljace('${firma.ApUser.replace(
           /'/g,
-          "\\'"
+          "\\'",
         )}')">
           ${firma.ApUser}
         </button>
@@ -150,7 +150,7 @@ async function ucitajDobavljace(firma) {
 
     if (!window.vendorMapping) {
       const mappingResponse = await fetch(
-        "http://localhost:3000/vendor-mapping"
+        "http://localhost:3000/vendor-mapping",
       );
       const mappingResult = await mappingResponse.json();
       if (mappingResult.success) {
@@ -194,8 +194,8 @@ async function ucitajDobavljace(firma) {
     // Učitaj dobavljače
     const response = await fetch(
       `http://localhost:3000/saldo_dobavljaca?firma=${encodeURIComponent(
-        firma
-      )}`
+        firma,
+      )}`,
     );
     const result = await response.json();
 
@@ -224,7 +224,7 @@ async function ucitajDobavljace(firma) {
       // Prvo proveri mapiranje dobavljača
       if (window.vendorMapping) {
         const mappingKey = Object.keys(window.vendorMapping).find(
-          (key) => key.toLowerCase() === dobavljacNaziv
+          (key) => key.toLowerCase() === dobavljacNaziv,
         );
         if (mappingKey && window.vendorMapping[mappingKey]) {
           emailAdresa = window.vendorMapping[mappingKey];
@@ -248,17 +248,17 @@ async function ucitajDobavljace(firma) {
 
       // Pripremi mailto link
       const subject = encodeURIComponent(
-        `Zahtev za analitičku karticu - ${row.Firma}`
+        `Zahtev za analitičku karticu - ${row.Firma}`,
       );
       const body = encodeURIComponent(
         `Poštovani,\n\n` +
-          `Molim Vas da mi pošaljete analitičku karticu za 2025. godinu za firmu ${row.Firma}.` +
+          `Molim Vas da mi pošaljete analitičku karticu za 2026. godinu za firmu ${row.Firma}.` +
           (row.PIB ? `\nPIB: ${row.PIB}` : "") +
           `\n\nHvala unaprijed.\n\n` +
           `Srdačan pozdrav\n` +
           `Željko Đuranović\n` +
           `Knjigovodstvena Agencija "Summa Summarum"\n` +
-          `Tel: 067/440-040`
+          `Tel: 067/440-040`,
       );
       const mailtoLink = `mailto:${emailAdresa}?subject=${subject}&body=${body}`;
 
@@ -272,8 +272,8 @@ async function ucitajDobavljace(firma) {
         <td class="${saldoClass}"><strong>${row.Saldo.toFixed(2)}</strong></td>
         <td>
           <a href="${mailtoLink}" class="btn btn-sm btn-outline-primary" title="${
-        emailAdresa || "Email nije pronađen"
-      }">
+            emailAdresa || "Email nije pronađen"
+          }">
             Traži karticu ${emailAdresa ? "✓" : ""}
           </a>
         </td>
@@ -322,7 +322,7 @@ async function prikaziFirmeZaZakljucni() {
       dugme.innerHTML = `
         <button class="btn btn-outline-success w-100" onclick="ucitajZakljucniList('${firma.ApUser.replace(
           /'/g,
-          "\\'"
+          "\\'",
         )}')">
           ${firma.ApUser}
         </button>
@@ -369,7 +369,7 @@ async function ucitajZakljucniList(firma) {
 
     // Učitaj zaključni list
     const response = await fetch(
-      `http://localhost:3000/zakljucni_list?firma=${encodeURIComponent(firma)}`
+      `http://localhost:3000/zakljucni_list?firma=${encodeURIComponent(firma)}`,
     );
     const result = await response.json();
 
@@ -418,6 +418,51 @@ async function ucitajZakljucniList(firma) {
       }">${ukupnoSaldo.toFixed(2)}</td>
     </tr>`;
     table.querySelector("tbody").innerHTML += ukupnoRow;
+  } catch (error) {
+    alert("Error: " + error.message);
+  }
+}
+
+async function fetchFirme2449() {
+  try {
+    const response = await fetch("http://localhost:3000/firme_2449");
+    const result = await response.json();
+
+    if (result.success) {
+      const table = document.getElementById("firme2449");
+      table.innerHTML = `
+        <thead class="table-dark">
+          <tr>
+            <th>Firma</th>
+            <th>Konto</th>
+            <th>Naziv konta</th>
+            <th>Duguje</th>
+            <th>Potraživanje</th>
+            <th>Saldo</th>
+          </tr>
+        </thead>
+        <tbody>
+      `;
+
+      result.data.forEach((row) => {
+        const saldoClass =
+          row.Saldo > 0 ? "text-danger" : row.Saldo < 0 ? "text-success" : "";
+        const newRow = `<tr>
+          <td>${row.Firma}</td>
+          <td>${row.Konto || "-"}</td>
+          <td>${row.NazivKonta || "-"}</td>
+          <td>${row.PrometDuguje.toFixed(2)}</td>
+          <td>${row.PrometPotrazuje.toFixed(2)}</td>
+          <td class="${saldoClass}"><strong>${row.Saldo.toFixed(2)}</strong></td>
+        </tr>`;
+        table.querySelector("tbody").innerHTML += newRow;
+      });
+
+      table.innerHTML += "</tbody>";
+      table.classList.remove("d-none");
+    } else {
+      alert("Error: " + result.error);
+    }
   } catch (error) {
     alert("Error: " + error.message);
   }

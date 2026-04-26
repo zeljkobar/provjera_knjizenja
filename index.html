@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -17,7 +17,9 @@
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Summa Summarum dashboard</h1>
         <div class="d-flex gap-2">
-          <a class="btn btn-outline-secondary" href="banke.html">Izvodi banaka</a>
+          <a class="btn btn-outline-secondary" href="banke.html"
+            >Izvodi banaka</a
+          >
         </div>
       </div>
     </div>
@@ -121,6 +123,27 @@
             <th>Naziv konta</th>
             <th>Promet Duguje</th>
             <th>Promet Potraživanje</th>
+            <th>Saldo</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="container py-5">
+      <h1 class="text-center mb-4">Prelazni devizni racun (konto 2449)</h1>
+      <div class="d-flex justify-content-center mb-3">
+        <button class="btn btn-primary" onclick="fetchFirme2449()">
+          Pokreni
+        </button>
+      </div>
+      <table id="firme2449" class="table table-striped table-bordered d-none">
+        <thead class="table-dark">
+          <tr>
+            <th>Firma</th>
+            <th>Konto</th>
+            <th>Naziv konta</th>
+            <th>Duguje</th>
+            <th>Potraživanje</th>
             <th>Saldo</th>
           </tr>
         </thead>
