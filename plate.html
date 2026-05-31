@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Plate</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="bg-light">
+    <div class="container py-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Plate</h1>
+        <div class="d-flex gap-2">
+          <a class="btn btn-outline-secondary" href="index.html">Nazad</a>
+          <a class="btn btn-outline-primary" href="plate.html">Osvjezi</a>
+        </div>
+      </div>
+
+      <h2 class="text-center mb-4">Pregled zarada</h2>
+
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="row g-3 align-items-end">
+            <div class="col-md-8">
+              <label class="form-label" for="firmaSelect">Firma</label>
+              <select class="form-select" id="firmaSelect">
+                <option value="">Ucitavam firme...</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <button class="btn btn-primary w-100" id="loadBtn">
+                Prikazi obracune
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="statusBox" class="alert d-none" role="alert"></div>
+
+      <div class="card mb-3 d-none" id="firmaCard">
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <div class="fw-semibold">Firma</div>
+              <div id="firmaNaziv">-</div>
+            </div>
+            <div class="col-md-2">
+              <div class="fw-semibold">PIB</div>
+              <div id="firmaPib">-</div>
+            </div>
+            <div class="col-md-2">
+              <div class="fw-semibold">Radnici</div>
+              <div id="firmaRadnici">0</div>
+            </div>
+            <div class="col-md-2">
+              <div class="fw-semibold">Aktivni</div>
+              <div id="firmaAktivni">0</div>
+            </div>
+            <div class="col-md-2">
+              <div class="fw-semibold">Obracuni</div>
+              <div id="firmaObracuni">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-3 d-none" id="monthsCard">
+        <div class="card-body">
+          <h5 class="card-title">Pregled po mjesecima</h5>
+          <div class="table-responsive">
+            <table class="table table-bordered table-striped mb-0" id="monthsTable">
+              <thead class="table-dark">
+                <tr>
+                  <th>Godina</th>
+                  <th>Mjesec</th>
+                  <th>Obracuna</th>
+                  <th>Radnika</th>
+                  <th>Neto</th>
+                  <th>Bruto</th>
+                  <th>Porez</th>
+                  <th>Prirez</th>
+                  <th>Dopr. zap.</th>
+                  <th>Dopr. posl.</th>
+                  <th></th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card d-none" id="detailsCard">
+        <div class="card-body">
+          <h5 class="card-title" id="detailsTitle">Detalji</h5>
+          <div class="table-responsive">
+            <table class="table table-bordered table-striped mb-0" id="detailsTable">
+              <thead class="table-dark">
+                <tr>
+                  <th>Radnik</th>
+                  <th>JMBG</th>
+                  <th>Status</th>
+                  <th>Tekuci racun</th>
+                  <th>Obracun</th>
+                  <th>Neto</th>
+                  <th>Bruto</th>
+                  <th>Porez</th>
+                  <th>Prirez</th>
+                  <th>Dopr. zap.</th>
+                  <th>Dopr. posl.</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="text-center my-4">Firme bez obracuna</h2>
+
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="row g-3 align-items-end">
+            <div class="col-sm-3">
+              <label class="form-label" for="missingYearInput">Godina</label>
+              <input
+                class="form-control"
+                id="missingYearInput"
+                type="number"
+                min="2000"
+                max="2100"
+              />
+            </div>
+            <div class="col-sm-3">
+              <label class="form-label" for="missingMonthInput">Mjesec</label>
+              <input
+                class="form-control"
+                id="missingMonthInput"
+                type="number"
+                min="1"
+                max="12"
+              />
+            </div>
+            <div class="col-sm-3">
+              <button class="btn btn-primary w-100" id="checkMissingBtn">
+                Provjeri
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card d-none" id="missingCard">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title mb-0" id="missingTitle">Firme bez obracuna</h5>
+            <div class="fw-semibold" id="missingSummary"></div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-bordered table-striped mb-0" id="missingTable">
+              <thead class="table-dark">
+                <tr>
+                  <th>Firma</th>
+                  <th>PIB</th>
+                  <th>Grad</th>
+                  <th>Radnici</th>
+                  <th>Aktivni</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="text-center my-4">Download IOPPD-a</h2>
+
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="row g-3 align-items-end">
+            <div class="col-sm-3">
+              <label class="form-label" for="ioppdYearInput">Godina</label>
+              <input
+                class="form-control"
+                id="ioppdYearInput"
+                type="number"
+                min="2000"
+                max="2100"
+              />
+            </div>
+            <div class="col-sm-3">
+              <label class="form-label" for="ioppdMonthInput">Mjesec</label>
+              <input
+                class="form-control"
+                id="ioppdMonthInput"
+                type="number"
+                min="1"
+                max="12"
+              />
+            </div>
+            <div class="col-sm-3">
+              <button class="btn btn-primary w-100" id="loadIoppdBtn">
+                Prikazi firme
+              </button>
+            </div>
+            <div class="col-sm-3">
+              <button class="btn btn-success w-100 d-none" id="downloadAllIoppdBtn">
+                Skini sve IOPPD-e
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card d-none" id="ioppdCard">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title mb-0" id="ioppdTitle">Firme sa obracunom</h5>
+            <div class="fw-semibold" id="ioppdSummary"></div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-bordered table-striped mb-0" id="ioppdTable">
+              <thead class="table-dark">
+                <tr>
+                  <th>Firma</th>
+                  <th>PIB</th>
+                  <th>Radnika</th>
+                  <th>Stavki</th>
+                  <th>Bruto</th>
+                  <th>Neto</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center my-4">
+        <button class="btn btn-outline-primary btn-lg" id="toggleCopySectionBtn">
+          Kopija obracuna
+        </button>
+      </div>
+
+      <div class="d-none" id="copySection">
+        <h2 class="text-center my-4">Kopiranje obracuna</h2>
+
+        <div class="card mb-3">
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-lg-5">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label mb-0">Firme</label>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-sm btn-outline-secondary" id="selectAllCopyBtn">
+                    Sve
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary" id="clearCopyBtn">
+                    Ocisti
+                  </button>
+                </div>
+              </div>
+              <div
+                class="border rounded bg-white p-2"
+                id="copyFirmList"
+                style="max-height: 320px; overflow-y: auto"
+              ></div>
+            </div>
+
+            <div class="col-lg-7">
+              <div class="row g-3">
+                <div class="col-sm-6">
+                  <h5 class="h6">Mjesec uzor</h5>
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <label class="form-label" for="sourceYearInput">Godina</label>
+                      <input
+                        class="form-control"
+                        id="sourceYearInput"
+                        type="number"
+                        min="2000"
+                        max="2100"
+                      />
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label" for="sourceMonthInput">Mjesec</label>
+                      <input
+                        class="form-control"
+                        id="sourceMonthInput"
+                        type="number"
+                        min="1"
+                        max="12"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-sm-6">
+                  <h5 class="h6">Novi mjesec</h5>
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <label class="form-label" for="targetYearInput">Godina</label>
+                      <input
+                        class="form-control"
+                        id="targetYearInput"
+                        type="number"
+                        min="2000"
+                        max="2100"
+                      />
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label" for="targetMonthInput">Mjesec</label>
+                      <input
+                        class="form-control"
+                        id="targetMonthInput"
+                        type="number"
+                        min="1"
+                        max="12"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 d-flex gap-2">
+                  <button class="btn btn-primary" id="checkCopyBtn">
+                    Provjeri
+                  </button>
+                  <button class="btn btn-success d-none" id="runCopyBtn">
+                    Napravi kopije
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+        <div class="card d-none" id="copyResultCard">
+        <div class="card-body">
+          <h5 class="card-title">Status kopiranja</h5>
+          <div class="table-responsive">
+            <table class="table table-bordered table-striped mb-0" id="copyResultTable">
+              <thead class="table-dark">
+                <tr>
+                  <th>Firma</th>
+                  <th>Uzor</th>
+                  <th>Novi mjesec</th>
+                  <th>Radnika</th>
+                  <th>Stavki</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="plate.js"></script>
+  </body>
+</html>
