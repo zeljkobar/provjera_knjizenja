@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Korisnicki portal</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="bg-light">
+    <div class="user-shell">
+      <aside class="user-sidebar">
+        <div class="admin-brand">
+          <div class="admin-brand-title">Summa Summarum</div>
+          <div class="admin-brand-subtitle">Korisnicki portal</div>
+        </div>
+
+        <nav class="admin-menu" aria-label="Korisnicki meni">
+          <button class="admin-menu-item active" data-user-section="info">
+            Info
+          </button>
+          <button class="admin-menu-item" data-user-section="kupci">
+            Salda kupaca
+          </button>
+          <button class="admin-menu-item" data-user-section="ino-kupci">
+            Salda ino kupaca
+          </button>
+          <button class="admin-menu-item" data-user-section="dobavljaci">
+            Salda dobavljaca
+          </button>
+          <button class="admin-menu-item" data-user-section="ino-dobavljaci">
+            Salda ino dobavljaca
+          </button>
+          <button class="admin-menu-item" data-user-section="plate">
+            Plate
+          </button>
+          <button class="admin-menu-item" data-user-section="kalkulacije">
+            Kalkulacije
+          </button>
+        </nav>
+
+        <a class="btn btn-outline-danger w-100 mt-auto" href="/logout">Odjava</a>
+      </aside>
+
+      <main class="user-main">
+        <div class="admin-topbar">
+          <div>
+            <h1 class="h3 mb-1" id="welcomeTitle">Dobrodosao</h1>
+            <div class="text-muted" id="welcomeSubtitle">Ucitavam podatke...</div>
+          </div>
+        </div>
+
+        <div class="admin-panel mb-4">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <div class="fw-semibold">Firma</div>
+              <div class="fs-5" id="userFirma">-</div>
+            </div>
+            <div class="col-md-4">
+              <div class="fw-semibold">PIB</div>
+              <div class="fs-5" id="userPib">-</div>
+            </div>
+          </div>
+        </div>
+
+        <section class="user-section active" id="user-section-info">
+          <div class="admin-panel">
+            <div class="admin-panel-header">
+              <div>
+                <h2>Info</h2>
+                <div class="text-muted">Pregled zadnjih knjizenih izvoda po bankama</div>
+                <div class="text-muted" id="latestInvoiceInfo">
+                  Posljednji knjizeni racun: -
+                </div>
+              </div>
+              <div class="d-flex gap-2 align-items-end">
+                <div>
+                  <label class="form-label mb-1" for="bankInfoYearInput">Godina</label>
+                  <input
+                    class="form-control"
+                    id="bankInfoYearInput"
+                    type="number"
+                    min="2000"
+                    max="2100"
+                    style="width: 120px"
+                  />
+                </div>
+                <button class="btn btn-primary" id="loadBankInfoBtn">Osvjezi</button>
+              </div>
+            </div>
+            <div class="alert d-none" id="bankInfoStatus" role="alert"></div>
+            <div class="table-responsive">
+              <table class="table table-striped table-bordered" id="bankInfoTable">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Banka</th>
+                    <th>Zadnji izvod</th>
+                    <th>Datum</th>
+                    <th>Nedostaje</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="user-section" id="user-section-kupci">
+          <div class="admin-panel">
+            <div class="admin-panel-header">
+              <h2>Salda kupaca</h2>
+              <div class="text-muted ms-auto" id="latestInvoiceKupci">
+                Posljednji knjizeni racun: -
+              </div>
+              <button class="btn btn-primary" data-load-salda="kupci">
+                Osvjezi
+              </button>
+            </div>
+            <div class="alert d-none" id="saldaStatusKupci" role="alert"></div>
+            <div class="table-responsive">
+              <table class="table table-striped table-bordered" id="saldaTableKupci">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Kupac</th>
+                    <th>Grad</th>
+                    <th>Duguje</th>
+                    <th>Potrazuje</th>
+                    <th>Saldo</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="user-section" id="user-section-ino-kupci">
+          <div class="admin-panel">
+            <div class="admin-panel-header">
+              <h2>Salda ino kupaca</h2>
+              <div class="text-muted ms-auto" id="latestInvoiceInoKupci">
+                Posljednji knjizeni racun: -
+              </div>
+              <button class="btn btn-primary" data-load-salda="ino-kupci">
+                Osvjezi
+              </button>
+            </div>
+            <div class="alert d-none" id="saldaStatusInoKupci" role="alert"></div>
+            <div class="table-responsive">
+              <table class="table table-striped table-bordered" id="saldaTableInoKupci">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Ino kupac</th>
+                    <th>Grad</th>
+                    <th>Duguje</th>
+                    <th>Potrazuje</th>
+                    <th>Saldo</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="user-section" id="user-section-dobavljaci">
+          <div class="admin-panel">
+            <div class="admin-panel-header">
+              <h2>Salda dobavljaca</h2>
+              <button class="btn btn-primary" data-load-salda="dobavljaci">
+                Osvjezi
+              </button>
+            </div>
+            <div class="alert d-none" id="saldaStatusDobavljaci" role="alert"></div>
+            <div class="table-responsive">
+              <table class="table table-striped table-bordered" id="saldaTableDobavljaci">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Dobavljac</th>
+                    <th>Grad</th>
+                    <th>Duguje</th>
+                    <th>Potrazuje</th>
+                    <th>Saldo</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="user-section" id="user-section-ino-dobavljaci">
+          <div class="admin-panel">
+            <div class="admin-panel-header">
+              <h2>Salda ino dobavljaca</h2>
+              <button class="btn btn-primary" data-load-salda="ino-dobavljaci">
+                Osvjezi
+              </button>
+            </div>
+            <div class="alert d-none" id="saldaStatusInoDobavljaci" role="alert"></div>
+            <div class="table-responsive">
+              <table class="table table-striped table-bordered" id="saldaTableInoDobavljaci">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Ino dobavljac</th>
+                    <th>Grad</th>
+                    <th>Duguje</th>
+                    <th>Potrazuje</th>
+                    <th>Saldo</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="user-section" id="user-section-plate">
+          <div class="admin-panel mb-3">
+            <div class="admin-panel-header">
+              <div>
+                <h2>Plate</h2>
+                <div class="text-muted">Pregled obracuna zarada po mjesecima</div>
+              </div>
+              <button class="btn btn-primary" id="loadPlateBtn">Osvjezi</button>
+            </div>
+            <div class="alert d-none" id="plateStatus" role="alert"></div>
+          </div>
+
+          <div class="admin-panel mb-3 d-none" id="plateFirmaCard">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="fw-semibold">Firma</div>
+                <div id="plateFirmaNaziv">-</div>
+              </div>
+              <div class="col-md-2">
+                <div class="fw-semibold">PIB</div>
+                <div id="plateFirmaPib">-</div>
+              </div>
+              <div class="col-md-2">
+                <div class="fw-semibold">Radnici</div>
+                <div id="plateFirmaRadnici">0</div>
+              </div>
+              <div class="col-md-2">
+                <div class="fw-semibold">Aktivni</div>
+                <div id="plateFirmaAktivni">0</div>
+              </div>
+              <div class="col-md-2">
+                <div class="fw-semibold">Obracuni</div>
+                <div id="plateFirmaObracuni">0</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-panel mb-3 d-none" id="plateMonthsCard">
+            <h2 class="mb-3">Pregled po mjesecima</h2>
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped mb-0" id="plateMonthsTable">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Godina</th>
+                    <th>Mjesec</th>
+                    <th>Obracuna</th>
+                    <th>Radnika</th>
+                    <th>Neto</th>
+                    <th>Bruto</th>
+                    <th>Porez</th>
+                    <th>Prirez</th>
+                    <th>Dopr. zap.</th>
+                    <th>Dopr. posl.</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="admin-panel d-none" id="plateDetailsCard">
+            <h2 class="mb-3" id="plateDetailsTitle">Detalji</h2>
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped mb-0" id="plateDetailsTable">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Radnik</th>
+                    <th>JMBG</th>
+                    <th>Obracun</th>
+                    <th>Neto</th>
+                    <th>Bruto</th>
+                    <th>Porez</th>
+                    <th>Prirez</th>
+                    <th>Dopr. zap.</th>
+                    <th>Dopr. posl.</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="user-section" id="user-section-kalkulacije">
+          <div class="admin-panel">
+            <div class="admin-panel-header">
+              <div>
+                <h2>Kalkulacije</h2>
+                <div class="text-muted">Pregled ulaznih kalkulacija po radnji</div>
+              </div>
+              <div class="d-flex gap-2 align-items-end">
+                <div>
+                  <label class="form-label mb-1" for="kalkulacijeYearInput">Godina</label>
+                  <input
+                    class="form-control"
+                    id="kalkulacijeYearInput"
+                    type="number"
+                    min="2000"
+                    max="2100"
+                    style="width: 120px"
+                  />
+                </div>
+                <div>
+                  <label class="form-label mb-1" for="kalkulacijeObjekatSelect">Radnja</label>
+                  <select class="form-select" id="kalkulacijeObjekatSelect" style="min-width: 220px">
+                    <option value="">Sve radnje</option>
+                  </select>
+                </div>
+                <button class="btn btn-primary" id="loadKalkulacijeBtn">Osvjezi</button>
+              </div>
+            </div>
+            <div class="alert d-none" id="kalkulacijeStatus" role="alert"></div>
+            <div class="fw-semibold mb-3" id="kalkulacijeSummary"></div>
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped mb-0" id="kalkulacijeTable">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Rbr</th>
+                    <th>Oznaka</th>
+                    <th>Datum</th>
+                    <th>Dobavljac</th>
+                    <th>Stavki</th>
+                    <th>Iznos racuna</th>
+                    <th>Prodajna vrijednost</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <div class="admin-panel mt-4 d-none" id="karticaPanel">
+          <div class="admin-panel-header">
+            <div>
+              <h2 id="karticaTitle">Analiticka kartica</h2>
+              <div class="text-muted" id="karticaSubtitle"></div>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-primary" id="printKarticaBtn">
+                Stampa kartice
+              </button>
+              <button class="btn btn-outline-secondary" id="closeKarticaBtn">
+                Zatvori
+              </button>
+            </div>
+          </div>
+          <div class="alert d-none" id="karticaStatus" role="alert"></div>
+          <div class="table-responsive">
+            <table class="table table-striped table-bordered table-sm" id="karticaTable">
+              <thead class="table-dark">
+                <tr>
+                  <th>Vrsta naloga</th>
+                  <th>Ozn.</th>
+                  <th>Rbr</th>
+                  <th>Oznaka naloga</th>
+                  <th>Dodatni opis</th>
+                  <th>Datum</th>
+                  <th>Opis</th>
+                  <th>Duguje</th>
+                  <th>Potrazuje</th>
+                  <th>Saldo</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="user.js?v=20260605-kalkulacije-pdf-1"></script>
+  </body>
+</html>

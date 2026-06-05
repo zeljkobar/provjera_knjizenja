@@ -38,12 +38,15 @@ function renderTable(rows) {
 
   sorted.forEach((row) => {
     const missing = row.missing && row.missing.length > 0;
-    const preview = missing 
-      ? row.missing.slice(0, 40).join(", ") + (row.missing.length > 40 ? " ..." : "")
+    const preview = missing
+      ? row.missing.slice(0, 40).join(", ") +
+        (row.missing.length > 40 ? " ..." : "")
       : "-";
-    
-    const datumStr = row.maxDate ? new Date(row.maxDate).toLocaleDateString("sr-RS") : "-";
-    
+
+    const datumStr = row.maxDate
+      ? new Date(row.maxDate).toLocaleDateString("sr-RS")
+      : "-";
+
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${row.apUser}</td>
@@ -72,7 +75,7 @@ async function loadReport() {
 
   try {
     const resp = await fetch(
-      `/banke-izvodi?bank=${encodeURIComponent(bank)}&year=${encodeURIComponent(year)}`
+      `/banke-izvodi?bank=${encodeURIComponent(bank)}&year=${encodeURIComponent(year)}`,
     );
     const data = await resp.json();
 

@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Summa Summarum Admin</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="bg-light">
+    <div class="admin-shell">
+      <aside class="admin-sidebar">
+        <div class="admin-brand">
+          <div class="admin-brand-title">Summa Summarum</div>
+          <div class="admin-brand-subtitle">Admin</div>
+        </div>
+
+        <nav class="admin-menu" aria-label="Admin meni">
+          <button class="admin-menu-item active" data-admin-section="zarade">
+            Broj obracuna zarada
+          </button>
+          <button class="admin-menu-item" data-admin-section="pocetno">
+            Ko nema pocetno stanje
+          </button>
+          <button class="admin-menu-item" data-admin-section="pdv">
+            Broj PDV prijava
+          </button>
+          <button class="admin-menu-item" data-admin-section="dobavljaci">
+            Saldo dobavljaca
+          </button>
+          <button class="admin-menu-item" data-admin-section="zakljucni">
+            Zakljucni list
+          </button>
+          <button class="admin-menu-item" data-admin-section="devizni">
+            Prelazni devizni racun
+          </button>
+          <button class="admin-menu-item" data-admin-section="korisnici">
+            Korisnici
+          </button>
+          <a class="admin-menu-item" href="banke.html">Izvodi banaka</a>
+          <a class="admin-menu-item" href="plate.html">Plate</a>
+        </nav>
+
+        <a class="btn btn-outline-danger w-100 mt-auto" href="/logout">Odjava</a>
+      </aside>
+
+      <main class="admin-main">
+        <div class="admin-topbar">
+          <div>
+            <h1 class="h3 mb-1">Admin dashboard</h1>
+            <div class="text-muted">Pregledi i kontrole za knjigovodstvo</div>
+          </div>
+        </div>
+
+        <section class="admin-section active" id="admin-section-zarade">
+          <div class="admin-panel">
+            <div class="admin-panel-header">
+              <h2>Broj obracuna zarada</h2>
+              <button class="btn btn-primary" onclick="fetchData()">Pokreni</button>
+            </div>
+            <div class="table-responsive">
+              <table id="resultTable" class="table table-striped table-bordered d-none">
+                <thead class="table-dark">
+                  <tr>
+                    <th>ApUser</th>
+                    <th>BrojNaloga</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-section" id="admin-section-pocetno">
+          <div class="admin-panel">
+            <div class="admin-panel-header">
+              <h2>Ko nema pocetno stanje</h2>
+              <button class="btn btn-primary" onclick="fetchData1()">Pokreni</button>
+            </div>
+            <div class="table-responsive">
+              <table id="pocetno" class="table table-striped table-bordered d-none">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Ime firme</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-section" id="admin-section-pdv">
+          <div class="admin-panel">
+            <div class="admin-panel-header">
+              <h2>Broj PDV prijava</h2>
+              <button class="btn btn-primary" onclick="fetchPdvPrijave()">
+                Pokreni
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table id="pdvPrijave" class="table table-striped table-bordered d-none">
+                <thead class="table-dark">
+                  <tr>
+                    <th>ApUser</th>
+                    <th>BrojNaloga</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-section" id="admin-section-dobavljaci">
+          <div class="admin-panel">
+            <div class="admin-panel-header">
+              <h2>Saldo dobavljaca (konto 4330)</h2>
+              <button class="btn btn-primary" onclick="prikaziFirme()">Pokreni</button>
+            </div>
+
+            <div id="listaFirmi" class="row g-2 mb-4 d-none"></div>
+            <div id="izabranaFirma" class="alert alert-info d-none"></div>
+
+            <div class="table-responsive">
+              <table
+                id="saldoDobavljaca"
+                class="table table-striped table-bordered d-none"
+              >
+                <thead class="table-dark">
+                  <tr>
+                    <th>Firma</th>
+                    <th>Godina</th>
+                    <th>Dobavljac</th>
+                    <th>Grad</th>
+                    <th>Duguje</th>
+                    <th>Potrazivanje</th>
+                    <th>Saldo</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-section" id="admin-section-zakljucni">
+          <div class="admin-panel">
+            <div class="admin-panel-header">
+              <h2>Zakljucni list</h2>
+              <button class="btn btn-primary" onclick="prikaziFirmeZaZakljucni()">
+                Pokreni
+              </button>
+            </div>
+
+            <div id="listaFirmiZakljucni" class="row g-2 mb-4 d-none"></div>
+            <div id="izabranaFirmaZakljucni" class="alert alert-info d-none"></div>
+
+            <div class="table-responsive">
+              <table
+                id="zakljucniList"
+                class="table table-striped table-bordered table-sm d-none"
+              >
+                <thead class="table-dark">
+                  <tr>
+                    <th>Konto</th>
+                    <th>Naziv konta</th>
+                    <th>Promet Duguje</th>
+                    <th>Promet Potrazivanje</th>
+                    <th>Saldo</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-section" id="admin-section-devizni">
+          <div class="admin-panel">
+            <div class="admin-panel-header">
+              <h2>Prelazni devizni racun (konto 2449)</h2>
+              <button class="btn btn-primary" onclick="fetchFirme2449()">
+                Pokreni
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table id="firme2449" class="table table-striped table-bordered d-none">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Firma</th>
+                    <th>Konto</th>
+                    <th>Naziv konta</th>
+                    <th>Duguje</th>
+                    <th>Potrazivanje</th>
+                    <th>Saldo</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-section" id="admin-section-korisnici">
+          <div class="admin-panel mb-4">
+            <div class="admin-panel-header">
+              <div>
+                <h2>Korisnici</h2>
+                <div class="text-muted">
+                  Kreiranje klijentskih naloga sa pristupom samo jednoj firmi
+                </div>
+              </div>
+            </div>
+
+            <div id="portalUserStatus" class="alert d-none" role="alert"></div>
+
+            <form id="portalUserForm" class="row g-3 align-items-end">
+              <div class="col-lg-3 col-md-6">
+                <label class="form-label" for="portalUsername">User</label>
+                <input class="form-control" id="portalUsername" required />
+              </div>
+              <div class="col-lg-3 col-md-6">
+                <label class="form-label" for="portalPassword">Pass</label>
+                <input
+                  class="form-control"
+                  id="portalPassword"
+                  type="password"
+                  required
+                />
+              </div>
+              <div class="col-lg-4 col-md-8">
+                <label class="form-label" for="portalFirmaSelect">Firma</label>
+                <select class="form-select" id="portalFirmaSelect" required>
+                  <option value="">Ucitavam firme...</option>
+                </select>
+              </div>
+              <div class="col-lg-2 col-md-4">
+                <button class="btn btn-primary w-100" id="portalCreateUserBtn">
+                  Kreiraj
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div class="admin-panel">
+            <div class="admin-panel-header">
+              <h2>Klijentski nalozi</h2>
+              <button class="btn btn-outline-primary" id="portalRefreshUsersBtn">
+                Osvjezi
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-striped table-bordered" id="portalUsersTable">
+                <thead class="table-dark">
+                  <tr>
+                    <th>User</th>
+                    <th>Rola</th>
+                    <th>Firma</th>
+                    <th>PIB</th>
+                    <th>Status</th>
+                    <th>Akcija</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="6" class="text-center">Nema podataka</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

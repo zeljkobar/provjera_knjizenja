@@ -1,6 +1,6 @@
 async function fetchData() {
   try {
-    const response = await fetch("http://localhost:3000/sve_plate");
+    const response = await fetch("/sve_plate");
     const result = await response.json();
 
     if (result.success) {
@@ -30,7 +30,7 @@ async function fetchData() {
 
 async function fetchPdvPrijave() {
   try {
-    const response = await fetch("http://localhost:3000/pdv_prijave");
+    const response = await fetch("/pdv_prijave");
     const result = await response.json();
 
     if (result.success) {
@@ -60,7 +60,7 @@ async function fetchPdvPrijave() {
 
 async function fetchData1() {
   try {
-    const response = await fetch("http://localhost:3000/pocetno_stanje");
+    const response = await fetch("/pocetno_stanje");
     const result = await response.json();
 
     if (result.success) {
@@ -104,7 +104,7 @@ async function prikaziFirme() {
     listaFirmi.classList.remove("d-none");
 
     // Učitaj listu firmi
-    const response = await fetch("http://localhost:3000/firme");
+    const response = await fetch("/firme");
     const result = await response.json();
 
     if (!result.success) {
@@ -139,7 +139,7 @@ async function ucitajDobavljace(firma) {
 
     // Učitaj kontakte i mapiranje prvi put
     if (!window.kontakti) {
-      const kontaktiResponse = await fetch("http://localhost:3000/kontakti");
+      const kontaktiResponse = await fetch("/kontakti");
       const kontaktiResult = await kontaktiResponse.json();
       if (kontaktiResult.success) {
         window.kontakti = kontaktiResult.data;
@@ -150,7 +150,7 @@ async function ucitajDobavljace(firma) {
 
     if (!window.vendorMapping) {
       const mappingResponse = await fetch(
-        "http://localhost:3000/vendor-mapping",
+        "/vendor-mapping",
       );
       const mappingResult = await mappingResponse.json();
       if (mappingResult.success) {
@@ -193,7 +193,7 @@ async function ucitajDobavljace(firma) {
 
     // Učitaj dobavljače
     const response = await fetch(
-      `http://localhost:3000/saldo_dobavljaca?firma=${encodeURIComponent(
+      `/saldo_dobavljaca?firma=${encodeURIComponent(
         firma,
       )}`,
     );
@@ -306,7 +306,7 @@ async function prikaziFirmeZaZakljucni() {
     listaFirmi.classList.remove("d-none");
 
     // Učitaj listu firmi
-    const response = await fetch("http://localhost:3000/firme");
+    const response = await fetch("/firme");
     const result = await response.json();
 
     if (!result.success) {
@@ -369,7 +369,7 @@ async function ucitajZakljucniList(firma) {
 
     // Učitaj zaključni list
     const response = await fetch(
-      `http://localhost:3000/zakljucni_list?firma=${encodeURIComponent(firma)}`,
+      `/zakljucni_list?firma=${encodeURIComponent(firma)}`,
     );
     const result = await response.json();
 
@@ -425,7 +425,7 @@ async function ucitajZakljucniList(firma) {
 
 async function fetchFirme2449() {
   try {
-    const response = await fetch("http://localhost:3000/firme_2449");
+    const response = await fetch("/firme_2449");
     const result = await response.json();
 
     if (result.success) {
@@ -466,4 +466,266 @@ async function fetchFirme2449() {
   } catch (error) {
     alert("Error: " + error.message);
   }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const menuItems = document.querySelectorAll("[data-admin-section]");
+  const sections = document.querySelectorAll(".admin-section");
+
+  function showAdminSection(sectionName) {
+    const section = document.getElementById(`admin-section-${sectionName}`);
+    if (!section) return;
+
+    menuItems.forEach((menuItem) => {
+      menuItem.classList.toggle(
+        "active",
+        menuItem.dataset.adminSection === sectionName,
+      );
+    });
+    sections.forEach((item) => item.classList.remove("active"));
+    section.classList.add("active");
+  }
+
+  menuItems.forEach((item) => {
+    item.addEventListener("click", () => {
+      const sectionName = item.dataset.adminSection;
+      window.location.hash = sectionName;
+      showAdminSection(sectionName);
+    });
+  });
+
+  if (window.location.hash) {
+    showAdminSection(window.location.hash.slice(1));
+  }
+
+  initPortalUsers();
+});
+
+function setPortalUserStatus(message, variant = "info") {
+  const status = document.getElementById("portalUserStatus");
+  if (!status) return;
+
+  status.textContent = message;
+  status.className = `alert alert-${variant}`;
+  status.classList.remove("d-none");
+}
+
+function clearPortalUserStatus() {
+  document.getElementById("portalUserStatus")?.classList.add("d-none");
+}
+
+async function loadPortalFirmOptions() {
+  const select = document.getElementById("portalFirmaSelect");
+  if (!select) return;
+
+  select.innerHTML = '<option value="">Ucitavam firme...</option>';
+
+  const response = await fetch("/portal/firme");
+  const result = await response.json();
+
+  if (!result.success) {
+    select.innerHTML = '<option value="">Greska pri ucitavanju firmi</option>';
+    setPortalUserStatus(result.error || "Greska pri ucitavanju firmi.", "danger");
+    return;
+  }
+
+  select.innerHTML = '<option value="">Izaberi firmu</option>';
+  result.data.forEach((firma) => {
+    const option = document.createElement("option");
+    option.value = firma.Id;
+    option.textContent = `${firma.ApUser} (${firma.PIB || "bez PIB"})`;
+    select.appendChild(option);
+  });
+}
+
+async function loadPortalUsers() {
+  const tbody = document.querySelector("#portalUsersTable tbody");
+  if (!tbody) return;
+
+  tbody.innerHTML =
+    '<tr><td colspan="6" class="text-center">Ucitavam...</td></tr>';
+
+  const response = await fetch("/portal/users");
+  const result = await response.json();
+
+  if (!result.success) {
+    tbody.innerHTML =
+      '<tr><td colspan="6" class="text-center text-danger">Greska pri ucitavanju</td></tr>';
+    setPortalUserStatus(result.error || "Greska pri ucitavanju korisnika.", "danger");
+    return;
+  }
+
+  if (!result.data.length) {
+    tbody.innerHTML =
+      '<tr><td colspan="6" class="text-center">Nema korisnika</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = "";
+  result.data.forEach((user) => {
+    const firme = user.Firme && user.Firme.length ? user.Firme : [{}];
+    const firmaText = firme
+      .map((firma) => firma.NazivFirme || firma.ApUser || "-")
+      .join(", ");
+    const pibText = firme.map((firma) => firma.PIB || "-").join(", ");
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${user.Username}</td>
+      <td>${user.Role}</td>
+      <td>${firmaText}</td>
+      <td>${pibText}</td>
+      <td>${user.IsActive ? "Aktivan" : "Neaktivan"}</td>
+      <td>
+        <div class="d-flex gap-2">
+          <button
+            class="btn btn-sm btn-outline-primary"
+            type="button"
+            data-reset-password-id="${user.Id}"
+            data-reset-password-user="${user.Username}"
+          >
+            Promijeni lozinku
+          </button>
+          <button
+            class="btn btn-sm btn-outline-danger"
+            type="button"
+            data-delete-user-id="${user.Id}"
+            data-delete-user-name="${user.Username}"
+          >
+            Izbrisi
+          </button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+
+  tbody.querySelectorAll("[data-reset-password-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      resetPortalUserPassword(
+        Number(button.dataset.resetPasswordId),
+        button.dataset.resetPasswordUser,
+      );
+    });
+  });
+
+  tbody.querySelectorAll("[data-delete-user-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      deletePortalUser(
+        Number(button.dataset.deleteUserId),
+        button.dataset.deleteUserName,
+      );
+    });
+  });
+}
+
+async function resetPortalUserPassword(userId, username) {
+  const password = window.prompt(`Nova lozinka za korisnika ${username}:`);
+  if (password === null) return;
+
+  if (password.length < 6) {
+    setPortalUserStatus("Lozinka mora imati najmanje 6 karaktera.", "warning");
+    return;
+  }
+
+  try {
+    const response = await fetch(`/portal/users/${userId}/password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    const result = await response.json();
+
+    if (!result.success) {
+      setPortalUserStatus(result.error || "Lozinka nije promijenjena.", "danger");
+      return;
+    }
+
+    setPortalUserStatus(`Lozinka za ${username} je promijenjena.`, "success");
+  } catch (error) {
+    setPortalUserStatus(error.message, "danger");
+  }
+}
+
+async function deletePortalUser(userId, username) {
+  const confirmed = window.confirm(
+    `Da li zelis da izbrises korisnika ${username}?`,
+  );
+  if (!confirmed) return;
+
+  try {
+    const response = await fetch(`/portal/users/${userId}`, {
+      method: "DELETE",
+    });
+    const result = await response.json();
+
+    if (!result.success) {
+      setPortalUserStatus(result.error || "Korisnik nije izbrisan.", "danger");
+      return;
+    }
+
+    setPortalUserStatus(`Korisnik ${username} je izbrisan.`, "success");
+    await loadPortalUsers();
+  } catch (error) {
+    setPortalUserStatus(error.message, "danger");
+  }
+}
+
+async function createPortalUser(event) {
+  event.preventDefault();
+  clearPortalUserStatus();
+
+  const createBtn = document.getElementById("portalCreateUserBtn");
+  const usernameInput = document.getElementById("portalUsername");
+  const passwordInput = document.getElementById("portalPassword");
+  const firmaSelect = document.getElementById("portalFirmaSelect");
+
+  const payload = {
+    username: usernameInput.value.trim(),
+    password: passwordInput.value,
+    firmaId: Number(firmaSelect.value),
+  };
+
+  createBtn.disabled = true;
+
+  try {
+    const response = await fetch("/portal/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const result = await response.json();
+
+    if (!result.success) {
+      setPortalUserStatus(result.error || "Korisnik nije kreiran.", "danger");
+      return;
+    }
+
+    setPortalUserStatus(
+      result.reactivated
+        ? "Korisnik je ponovo aktiviran i lozinka je promijenjena."
+        : "Korisnik je kreiran.",
+      "success",
+    );
+    usernameInput.value = "";
+    passwordInput.value = "";
+    firmaSelect.value = "";
+    await loadPortalUsers();
+  } catch (error) {
+    setPortalUserStatus(error.message, "danger");
+  } finally {
+    createBtn.disabled = false;
+  }
+}
+
+function initPortalUsers() {
+  const form = document.getElementById("portalUserForm");
+  if (!form) return;
+
+  form.addEventListener("submit", createPortalUser);
+  document
+    .getElementById("portalRefreshUsersBtn")
+    ?.addEventListener("click", loadPortalUsers);
+
+  loadPortalFirmOptions();
+  loadPortalUsers();
 }
